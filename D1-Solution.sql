@@ -1,4 +1,5 @@
 USE AdventureWorks2019
+GO
 
 SELECT ProductID, Name, Color, ListPrice 
 FROM Production.Product
@@ -66,15 +67,20 @@ SELECT ProductSubCategoryID
       , LEFT([Name],35) AS [Name]
       , Color, ListPrice 
 FROM Production.Product
-WHERE NOT (Color IN ('Red','Black') 
-      AND ListPrice NOT BETWEEN 1000 AND 2000 
-      AND ProductSubCategoryID = 1)
+WHERE Color IN ('Red','Black') 
+    AND ProductSubCategoryID = 1
+    OR ListPrice BETWEEN 1000 AND 2000
 ORDER BY ProductID
+
+-- SELECT p.ProductSubcategoryID, p.Name, p.Color, p.ListPrice
+-- FROM Production.Product AS p
+-- WHERE p.ProductSubcategoryID = 14 AND p.ListPrice > 1000 AND (p.Name LIKE '%Red%' OR p.Name LIKE '%58')
+--     OR p.ProductSubcategoryID = 12 AND p.Color = 'Silver' AND p.ListPrice > 1300
+--     OR p.ProductSubcategoryID = 2 AND p.Color = 'Yellow' AND p.ListPrice > 1500
+--     OR p.ProductSubcategoryID = 1 AND p.Color = 'Black' AND p.ListPrice < 1000
+-- ORDER BY p.ProductSubcategoryID DESC
 
 SELECT p.ProductSubcategoryID, p.Name, p.Color, p.ListPrice
 FROM Production.Product AS p
-WHERE p.ProductSubcategoryID = 14 AND p.ListPrice > 1000 AND (p.Name LIKE '%Red%' OR p.Name LIKE '%58')
-    OR p.ProductSubcategoryID = 12 AND p.Color = 'Silver' AND p.ListPrice > 1300
-    OR p.ProductSubcategoryID = 2 AND p.Color = 'Yellow' AND p.ListPrice > 1500
-    OR p.ProductSubcategoryID = 1 AND p.Color = 'Black' AND p.ListPrice < 1000
+WHERE p.Color IN ('Black', 'Red', 'Silver', 'Yellow')
 ORDER BY p.ProductSubcategoryID DESC
