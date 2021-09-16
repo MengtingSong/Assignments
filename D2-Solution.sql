@@ -148,6 +148,111 @@ GROUP BY ShipPostalCode
 ORDER BY SUM(Quantity) DESC
 
 -- 17
-SELECT City, COUNT(DINSTINCT CustomerID) AS CustomerNumber
+SELECT City, COUNT(DISTINCT CustomerID) AS CustomerNumber
 FROM dbo.Customers
 GROUP BY City
+
+-- 18
+SELECT City, COUNT(CustomerID) AS CustomerNumber
+FROM dbo.Customers
+GROUP BY City
+HAVING COUNT(CustomerID) > 10
+
+-- 19
+SELECT c.ContactName, o.OrderDate
+FROM dbo.Customers AS c 
+INNER JOIN dbo.Orders AS o
+ON c.CustomerID = o.CustomerID
+WHERE o.OrderDate > CONVERT(datetime, '1998-01-01')
+
+-- 20
+SELECT c.ContactName, MAX(o.OrderDate) AS RecentOrderDate
+FROM dbo.Customers AS c 
+INNER JOIN dbo.Orders AS o
+ON c.CustomerID = o.CustomerID
+GROUP BY c.ContactName
+
+-- 21
+SELECT c.CustomerID, c.ContactName, COUNT(od.Quantity) AS CountOfProducts
+FROM dbo.Customers AS c 
+INNER JOIN dbo.Orders AS o
+ON c.CustomerID = o.CustomerID
+INNER JOIN dbo.[Order Details] AS od 
+ON o.OrderID = od.OrderID
+GROUP BY c.CustomerID, c.ContactName
+
+-- 22
+SELECT c.CustomerID, COUNT(od.Quantity) AS CountOfProducts
+FROM dbo.Customers AS c 
+INNER JOIN dbo.Orders AS o
+ON c.CustomerID = o.CustomerID
+INNER JOIN dbo.[Order Details] AS od 
+ON o.OrderID = od.OrderID
+GROUP BY c.CustomerID
+HAVING COUNT(od.Quantity) > 100
+
+-- 23
+SELECT su.CompanyName AS [Supplier Company Name]
+    , sh.CompanyName AS [Shipping Company Name]
+FROM dbo.Suppliers AS su
+CROSS JOIN dbo.Shippers AS sh
+
+-- 24
+SELECT o.OrderDate, p.ProductName
+FROM dbo.Products AS p
+INNER JOIN dbo.[Order Details] AS od
+ON p.ProductID = od.ProductID
+INNER JOIN dbo.[Orders] AS o
+ON od.OrderID = od.OrderID
+
+-- 25
+SELECT CONCAT(l.FirstName, ' ', l.LastName) AS EmployeeName
+    , CONCAT(r.FirstName, ' ', r.LastName) AS EmployeeName
+FROM dbo.Employees AS l
+INNER JOIN dbo.Employees AS r
+ON l.Title = r.Title
+WHERE l.EmployeeID != r.EmployeeID
+
+-- 26
+SELECT e.ReportsTo AS ManagerID
+    , COUNT(e.EmployeeID) AS EmployeeNumber
+FROM dbo.Employees AS e
+INNER JOIN dbo.Employees AS m
+ON e.ReportsTo = m.EmployeeID
+GROUP BY e.ReportsTo
+HAVING COUNT(e.EmployeeID) > 2
+-- CONCAT(m.FirstName, ' ', m.LastName) AS ManagerName
+
+-- 27
+SELECT City
+    , ContactName
+    , 'Customer' AS Type
+FROM dbo.Customers
+UNION ALL
+SELECT City
+    , ContactName
+    , 'Suppliers' AS Type
+from dbo.Suppliers
+
+-- 28
+SELECT *
+FROM T1
+INNER JOIN T2
+ON F1.T1 = F2.T2
+
+-- Result:
+F1.T1	F2.T2
+2	    2
+3	    3
+
+-- 29
+SELECT *
+FROM T1
+LEFT JOIN T2
+ON F1.T1 = F2.T2
+
+F1.T1	F2.T2
+1       NULL
+2	    2
+3	    3
+
