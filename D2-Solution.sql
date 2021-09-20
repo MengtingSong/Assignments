@@ -210,18 +210,19 @@ SELECT CONCAT(l.FirstName, ' ', l.LastName) AS EmployeeName
     , CONCAT(r.FirstName, ' ', r.LastName) AS EmployeeName
 FROM dbo.Employees AS l
 INNER JOIN dbo.Employees AS r
-ON l.Title = r.Title
-WHERE l.EmployeeID != r.EmployeeID
+ON l.Title = r.Title AND l.EmployeeID < r.EmployeeID
 
 -- 26
+-- CONCAT(...) is also a column that should be included in GROUP BY clause
 SELECT e.ReportsTo AS ManagerID
+    , CONCAT(m.FirstName, ' ', m.LastName) AS ManagerName
     , COUNT(e.EmployeeID) AS EmployeeNumber
 FROM dbo.Employees AS e
 INNER JOIN dbo.Employees AS m
 ON e.ReportsTo = m.EmployeeID
-GROUP BY e.ReportsTo
+GROUP BY e.ReportsTo, CONCAT(m.FirstName, ' ', m.LastName) 
 HAVING COUNT(e.EmployeeID) > 2
--- CONCAT(m.FirstName, ' ', m.LastName) AS ManagerName
+
 
 -- 27
 SELECT City
