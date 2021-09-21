@@ -35,6 +35,7 @@
 -- Same as question 4
 
 -- Queries:
+USE Northwind
 SET STATISTICS IO ON
 
 -- 1
@@ -200,33 +201,55 @@ AS (
     INNER JOIN dbo.Products p
     ON od.ProductID = p.ProductID
     GROUP BY o.ShipCity
-    HAVING COUNT(p.ProductID) >= 2
+    HAVING COUNT(p.ProductID) >= 2    
+    -- Can NOT use alias from AGG func in HAVING statement (alias creation is executed in the very end)
+    -- Can NOT use ORDER BY in CTE_query_definition except when a TOP clause is specified
 )
 SELECT cte.ShipCity City
 FROM cte
 
--- WITH 
--- q AS (
---     SELECT o.CustomerID, od.ProductID, od.Quantity
---     FROM dbo.Orders o
---     INNER JOIN dbo.[Order Details] od
---     ON o.OrderID = od.OrderID
--- ),
--- cq AS (
---     SELECT SUM(q.Quantity) Quantity, q.CustomerID, q.ProductID
---     FROM q
---     GROUP BY q.CustomerID, q.ProductID
--- ),
--- cpq AS (
---     SELECT p.ProductName, cq.CustomerID, cq.Quantity
---     FROM dbo.Products p
---     INNER JOIN cq
---     ON cq.ProductID = p.ProductID
--- )
 
--- SELECT c.City, cpq.ProductName
--- FROM dbo.Customers c
--- INNER JOIN cpq
--- ON c.CustomerID = cpq.CustomerID
+WITH oq AS    -- No need to specify column name when it can be inherited from result set created by select statement
+(
+    SELECT o.CustomerID, od.ProductID, od.Quantity
+    FROM dbo.Orders o
+    INNER JOIN dbo.[Order Details] od
+    ON o.OrderID = od.OrderID
+), 
+oc AS 
+(
+    SELECT c.CustomerID, o.OrderID, c.City
+    FROM dbo.Customers c
+    INNER JOIN dbo.Orders o
+    ON c.CustomerID = o.CustomerID
+),
+cq AS
+(
+    SELECT oc.City, oq.ProductID, SUM(oq.Quantity) Quantity     
+    -- Need to specify column name when it's not specified in result set by default (e.g. use AGG functions)
+    FROM oq     -- Can use CTE declared ahead or itself (recursive CTE) inside another CTE
+    INNER JOIN oc
+    ON oq.CustomerID = oc.CustomerID
+    GROUP BY oc.City, oq.ProductID
+),
+pq AS 
+(
+    SELECT DISTINCT p.ProductID, p.ProductName
+    -- Need to use DISTINCT when joining on columns having not unique values in either of them
+    -- Otherwise will have duplicates in result set
+    FROM dbo.Products p
+    INNER JOIN dbo.[Order Details] od
+    ON p.ProductID = od.ProductID
+)
+SELECT City, ProductName, Quantity
+-- No need to specify source table for columns when no duplicates exsit in column names when joining multiple tables
+FROM cq
+INNER JOIN pq
+ON cq.ProductID = pq.ProductID
+ORDER BY City
+
+-- CTE Can ONLY use within ONE single SELECT, INSERT, UPDATE, DELETE, or MERGE statement
+-- SELECT City FROM cq      -- Error: Invalid object name 'cq'.
+
 
 -- 7
