@@ -1,14 +1,14 @@
 -- An SQL result set is a set of rows from a database as the output of a query, 
 -- as well as metadata about the query such as the column names, 
---and the types and sizes of each column.
+-- and the types and sizes of each column.
 
--- UNION ALL keeps all of the records from each of the original data sets, 
--- UNION removes any duplicate records. UNION first performs a sorting operation 
--- and eliminates of the records that are duplicated across all columns before 
--- finally returning the combined data set.
+-- UNION ALL keeps all of the records from each of the original data sets, UNION removes any duplicate records. 
+-- UNION will perform a sorting operation on the first column in the first SELECT statement 
+-- before finally returning the combined data set.
+-- UNION can NOT be used inside a recursive CTE but UNION ALL can be used.
 
 -- INTERSECT - Returns only the common records obtained from two or more SELECT statements.
--- MINUS - Returns only those records which are exclusive to the first table.
+-- EXCEPT - Returns only those records which are in the first query but not in the second query.
 
 -- JOIN combines data from many tables based on a matched condition between them. It combines data into new columns.
 -- UNION combines the result-set of two or more SELECT statements. It combines data into new rows.

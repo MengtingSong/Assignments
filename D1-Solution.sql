@@ -25,6 +25,10 @@ SELECT CONCAT(Name, ' ', Color) AS 'Name Color'
 FROM Production.Product
 WHERE Color IS NOT NULL
 
+SELECT Name + ' ' + Color AS 'Name Color'
+FROM Production.Product
+WHERE Color IS NOT NULL
+
 SELECT CONCAT('NAME:', Name, ' -- COLOR: ', Color) AS 'Name And Color'
 FROM Production.Product
 
