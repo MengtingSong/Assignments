@@ -256,3 +256,172 @@ ORDER BY City
 -- right after its definition.
 
 -- 7
+SELECT DISTINCT c.ContactName, c.City, o.ShipCity
+FROM dbo.Customers c
+INNER JOIN dbo.Orders o
+ON c.CustomerID = o.CustomerID AND c.City != o.ShipCity
+
+-- 8
+WITH CustomerCity
+AS (
+    SELECT OrderID, City
+    FROM dbo.Customers c
+    INNER JOIN dbo.Orders o
+    ON c.CustomerID = o.CustomerID
+),
+Top5Product
+AS (
+    SELECT TOP 5 ProductID, 
+    ROUND(SUM(UnitPrice*(1-Discount)*Quantity)/SUM(Quantity), 2) AveragePrice,
+    SUM(Quantity) TotalQuantity
+    FROM dbo.[Order Details] od
+    GROUP BY ProductID
+    ORDER BY TotalQuantity
+),
+CityOrder
+AS (
+    SELECT p.ProductID, c.City, 
+    SUM(Quantity) CityOrderQuantity
+    FROM Top5Product p
+    INNER JOIN dbo.[Order Details] od
+    ON p.ProductID = od.ProductID
+    INNER JOIN CustomerCity c
+    ON od.OrderID = c.OrderID
+    GROUP BY p.ProductID, c.City
+),
+RankCity
+AS (
+    SELECT p.ProductID, ProductName, City,
+    RANK() OVER(PARTITION BY p.ProductID ORDER BY CityOrderQuantity DESC) CityRank
+    FROM CityOrder c
+    INNER JOIN dbo.Products p
+    ON c.ProductID = p.ProductID
+)
+SELECT c.ProductName, p.AveragePrice, c.City
+FROM RankCity c
+INNER JOIN Top5Product p
+ON c.ProductID = p.ProductID
+WHERE c.CityRank = 1
+
+-- 9
+-- a
+SELECT e.City
+FROM dbo.Employees e
+WHERE e.City NOT IN
+(SELECT c.City
+FROM dbo.Orders o
+INNER JOIN dbo.Customers c
+ON o.CustomerID = c.CustomerID)
+
+-- b
+WITH cte
+AS (
+    SELECT c.City
+    FROM dbo.Orders o
+    INNER JOIN dbo.Customers c
+    ON o.CustomerID = c.CustomerID
+)
+SELECT City
+FROM dbo.Employees 
+WHERE City NOT IN 
+(SELECT City FROM cte)
+
+-- c USE #table
+CREATE TABLE #cte 
+(City VARCHAR(15))
+
+INSERT INTO #cte
+SELECT c.City
+FROM dbo.Orders o
+INNER JOIN dbo.Customers c
+ON o.CustomerID = c.CustomerID
+
+SELECT City
+FROM dbo.Employees 
+WHERE City NOT IN 
+(SELECT City FROM #cte)
+
+DROP TABLE #cte
+
+-- 10
+WITH EmployeeCity
+AS (
+    SELECT e.City, COUNT(o.OrderID) OrderNumber
+    FROM dbo.Customers c
+    INNER JOIN dbo.Orders o
+    ON c.CustomerID = o.CustomerID
+    INNER JOIN dbo.Employees e
+    ON c.City = e.City
+    GROUP BY e.City
+),
+OrderCity
+AS (
+    SELECT c.City, COUNT(o.OrderID) OrderQuantity
+    FROM dbo.Orders o
+    INNER JOIN dbo.Customers c
+    ON o.CustomerID = c.CustomerID
+    GROUP BY c.City
+)
+SELECT * 
+FROM (SELECT TOP 1 City
+FROM EmployeeCity
+ORDER BY OrderNumber DESC) ec    -- MUST give subquery an alias
+UNION
+SELECT *
+FROM (SELECT TOP 1 City
+FROM OrderCity
+ORDER BY OrderQuantity DESC) oc
+-- Can NOT use ORDER BY within the SELECT statements of set operators
+-- ORDER BY can ONLY be implemented at the very end on the result set after UNION
+
+-- Invalid Code
+-- SELECT TOP 1 City
+-- FROM EmployeeCity
+-- ORDER BY OrderNumber DESC
+-- UNION
+-- SELECT TOP 1 City
+-- FROM OrderCity
+-- ORDER BY OrderQuantity DESC
+
+-- 11. How to remove the duplicates record of a table?
+-- Firstly, use ROW_NUMBER() OVER(PARTITION BY all columns ORDER BY any column)
+-- Then remove all records where ROW_NUMBER > 1
+
+-- RANK() also works only if the table has a column with unique value. e.g. id/primary key
+-- ROW_NUMBER() OVER(PARTITION BY all non-unique columns ORDER BY id)
+
+-- Sample Table for 12-14
+-- Employee ( empid integer, mgrid integer, deptid integer, salary integer) 
+-- Dept (deptid integer, deptname text)
+
+-- 12
+SELECT l.empid
+FROM Employee AS l
+LEFT JOIN Employee AS r
+ON l.empid = r.mgrid
+WHERE r.mgrid IS NULL
+
+-- 13
+SELECT deptname, empnumber
+FROM 
+(SELECT deptname, COUNT(1) empnumber, RANK() OVER(ORDER BY empnumber DESC) rank
+FROM Employee e
+INNER JOIN Dept d
+ON d.deptid = e.deptid
+GROUP BY d.deptname)
+WHERE rank = 1
+
+
+-- Employee ( empid integer, mgrid integer, deptid integer, salary integer) 
+-- Dept (deptid integer, deptname text)
+
+-- 14
+SELECT deptname, empid, salary
+FROM 
+(SELECT d.deptname, e.empid, e,salary, 
+ROW_NUMBER() OVER(PARTITION BY d.deptname ORDER BY e.salary DESC) rank
+FROM Employee e
+INNER JOIN Dept d
+ON e.deptid = d.deptid)
+WHERE rank <= 3
+ORDER BY deptname
