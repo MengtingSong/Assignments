@@ -57,7 +57,10 @@ ON c.City = e.City
 SELECT DISTINCT c.City
 FROM dbo.Customers c
 WHERE c.City
-NOT IN (SELECT DISTINCT City
+NOT IN (SELECT DISTINCT City    
+-- (Can NOT use = ) Subquery returned more than 1 value. Not permitted when the subquery 
+-- follows =, !=, <, <= , >, >= or 
+-- when the subquery is used as an expression.
 FROM dbo.Employees)
 
 SELECT DISTINCT c.City
@@ -77,7 +80,8 @@ WHERE e.EmployeeID IS NULL
 -- 3
 SELECT p.ProductName, q.Quantity
 FROM dbo.Products p
-INNER JOIN (SELECT SUM(Quantity) Quantity, od.ProductID
+INNER JOIN 
+(SELECT SUM(Quantity) Quantity, od.ProductID
 FROM dbo.[Order Details] od
 GROUP BY od.ProductID) q
 ON p.ProductID = q.ProductID
@@ -136,7 +140,6 @@ ON c.City = c2.City
 -- GROUP BY City
 -- HAVING COUNT(CustomerID) >= 2)
 
--- Worse performance because of using corealted subquery???
 SELECT DISTINCT c.City 
 FROM dbo.Customers c
 WHERE EXISTS        -- When using EXISTS, column of outer table must be included in subquery
@@ -159,13 +162,14 @@ HAVING COUNT(CustomerID) >= 2)
 SELECT DISTINCT c.City 
 FROM dbo.Customers c
 WHERE c.City
-IN (SELECT vc.City FROM (SELECT COUNT(CustomerID) CustomerCount, City
+IN (SELECT vc.City FROM 
+(SELECT COUNT(CustomerID) CustomerCount, City
 FROM dbo.Customers
 GROUP BY City
 HAVING COUNT(CustomerID) >= 2) vc)
 
 -- Incorrect solution:
--- City in Line 136 is not specified
+-- City in subquery is not specified
 -- SELECT DISTINCT c.City 
 -- FROM dbo.Customers c
 -- WHERE c.City
@@ -248,8 +252,7 @@ INNER JOIN pq
 ON cq.ProductID = pq.ProductID
 ORDER BY City
 
--- CTE Can ONLY use within ONE single SELECT, INSERT, UPDATE, DELETE, or MERGE statement
--- SELECT City FROM cq      -- Error: Invalid object name 'cq'.
-
+-- CTE Can be used within ONLY ONE single SELECT, INSERT, UPDATE, DELETE, or MERGE statement
+-- right after its definition.
 
 -- 7
