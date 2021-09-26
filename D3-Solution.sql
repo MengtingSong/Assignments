@@ -401,6 +401,52 @@ LEFT JOIN Employee AS r
 ON l.empid = r.mgrid
 WHERE r.mgrid IS NULL
 
+SELECT empid
+FROM Employee e
+WHERE empid NOT IN e.mgrid
+
+SELECT empid
+FROM Employee
+WHERE empid 
+!= ALL(SELECT mgrid
+FROM Employee
+WHERE mgrid IS NOT NULL)
+
+-- Test
+USE Northwind
+
+SELECT EmployeeID, ReportsTo
+FROM dbo.Employees
+
+SELECT l.EmployeeID
+FROM dbo.Employees l
+LEFT JOIN dbo.Employees r
+ON l.EmployeeID = r.ReportsTo
+WHERE r.ReportsTo IS NULL
+
+SELECT EmployeeID
+FROM dbo.Employees
+WHERE EmployeeID 
+!= ALL(SELECT ReportsTo 
+FROM dbo.Employees
+WHERE ReportsTo IS NOT NULL)
+-- A column NOT IN (Column containing NULL), != ALL(Column containing NULL)
+-- Always return NULL
+-- Thus no result set will be returned from this clause
+-- However A column IN/=ANY (Column containing NULL)
+-- will return non NULL data matching the condition
+
+-- != ALL(col) <=> NOT IN col
+-- = ANY(col) <=> IN col
+-- Meaningless: = ALL(), != ANY
+
+SELECT EmployeeID
+FROM dbo.Employees
+WHERE EmployeeID NOT IN 
+(SELECT ReportsTo 
+FROM dbo.Employees
+WHERE ReportsTo IS NOT NULL)
+
 -- 13
 SELECT deptname, empnumber
 FROM 
