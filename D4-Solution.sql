@@ -35,9 +35,11 @@ CREATE TABLE Cities
 CREATE TABLE ProjectsInCities
 (
     project_id INT NOT NULL
-    FOREIGN KEY REFERENCES Projects(id),
+    FOREIGN KEY REFERENCES Projects(id)
+    ON DELETE CASCADE,
     city_id INT NOT NULL
-    FOREIGN KEY REFERENCES Cities(id),
+    FOREIGN KEY REFERENCES Cities(id)
+    ON DELETE CASCADE,
     CONSTRAINT
     pk PRIMARY KEY(project_id, city_id)
 );
@@ -45,6 +47,7 @@ CREATE TABLE ProjectsInCities
 ALTER TABLE HeadOffices
 ADD CONSTRAINT fk_cities 
 FOREIGN KEY (city_id) REFERENCES Cities(id)
+ON DELETE CASCADE
 
 -- 2
 USE [D4-Q2]
@@ -121,18 +124,26 @@ GO
 
 CREATE TABLE course_category
 (
-    category_id INT NOT NULL,
-    course_id INT NOT NULL,
-    CONSTRAINT composite_pk
+    category_id INT NOT NULL 
+    FOREIGN KEY REFERENCES categories(id)
+    ON DELETE CASCADE,
+    course_id INT NOT NULL 
+    FOREIGN KEY REFERENCES courses(id)
+    ON DELETE CASCADE,
+    CONSTRAINT com_pk
     PRIMARY KEY (category_id, course_id)
 );
 GO
 
 CREATE TABLE employee_category
 (
-    employee_id INT NOT NULL,
-    category_id INT NOT NULL,
-    CONSTRAINT composite_pk
+    employee_id INT NOT NULL 
+    FOREIGN KEY REFERENCES employees(id)
+    ON DELETE CASCADE,
+    category_id INT NOT NULL 
+    FOREIGN KEY REFERENCES categories(id)
+    ON DELETE CASCADE,
+    CONSTRAINT comp_pk
     PRIMARY KEY (employee_id, category_id)
 );
 GO
